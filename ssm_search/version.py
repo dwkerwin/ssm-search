@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __title__ = 'ssm-search'
 __description__ = 'A CLI to easily search for SSM parameters'
 __url__ = 'https://github.com/dwkerwin/ssm-search'

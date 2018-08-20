@@ -8,8 +8,18 @@ import time
 import shelve
 
 
+class colors:
+    BLUE = '\033[94m'
+    CYAN   = '\033[36m'
+    YELLOW = '\033[93m'
+    ENDCOLOR = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 def search_ssm_params(ssm_params, search_strings):
     num_matches = 0
+    secure_string_label = '{}(SecureString){}'.format(colors.YELLOW, colors.ENDCOLOR)
     for parameter in ssm_params:
         found_count = 0
         for search_string in search_strings:
@@ -20,9 +30,12 @@ def search_ssm_params(ssm_params, search_strings):
                 raise ("Error processing parameter: {}\nParameter: {}".format(str(e), parameter))
         if found_count == len(search_strings):
             num_matches += 1
-            print("{} -> {}".format(
+            print("{}{} {}->{} {}".format(
+                colors.BLUE,
                 parameter['Name'],
-                '(SecureString)' if parameter['Type'] == 'SecureString' else parameter['Value']))
+                colors.CYAN,
+                colors.ENDCOLOR,
+                secure_string_label if parameter['Type'] == 'SecureString' else parameter['Value']))
 
 
     print("Found {} matches out of {} parameters from SSM".format(
