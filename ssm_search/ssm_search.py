@@ -113,7 +113,10 @@ def write_ssm_cache(ssm_cache_filename, ssm_params):
     ssm_cache_dir = os.path.dirname(os.path.abspath(ssm_cache_filename))
     if not os.path.exists(ssm_cache_dir):
         os.makedirs(ssm_cache_dir)
-    os.remove(ssm_cache_filename)
+    try:
+        os.remove(ssm_cache_filename)
+    except OSError:
+        pass
     shelf = shelve.open(ssm_cache_filename)
     shelf['ssm_params'] = ssm_params
     shelf.close()
