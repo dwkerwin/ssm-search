@@ -28,7 +28,7 @@ Found 2 matches out of 513 parameters from SSM
 
 # search on both "long-service" and "connection", by the way it's case insensitive
 $ ssm-search -s long-service -s connection
-SSM Search version 0.1.1
+SSM Search version 0.1.2
 Searching SSM for ['long-service', 'connection' ]
 /dev/another-prefix/my-really-long-service-name/MYSQL_CONNECTION_STRING -> (SecureString)
 Found 1 matches out of 513 parameters from SSM
@@ -40,7 +40,7 @@ Results are cached to local disk for a short period to make subsequent requests 
 
 ## Publishing Updates to PyPi
 
-For the maintainer - to publish an updated version of TFPromote, increment the version number in version.py and run the following:
+For the maintainer - to publish an updated version of ssm-search, increment the version number in version.py and run the following:
 
 ```shell
 docker build -f ./Dockerfile.buildenv -t ssm-search:build .
