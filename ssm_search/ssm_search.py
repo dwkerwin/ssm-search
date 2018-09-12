@@ -17,7 +17,7 @@ class colors:
     UNDERLINE = '\033[4m'
 
 
-def search_ssm_params(ssm_params, search_strings):
+def search_ssm_params(ssm_params, search_strings, show_secrets):
     num_matches = 0
     secure_string_label = '{}(SecureString){}'.format(colors.YELLOW, colors.ENDCOLOR)
     for parameter in ssm_params:
@@ -30,12 +30,20 @@ def search_ssm_params(ssm_params, search_strings):
                 raise ("Error processing parameter: {}\nParameter: {}".format(str(e), parameter))
         if found_count == len(search_strings):
             num_matches += 1
+            if parameter['Type'] == 'SecureString':
+                if show_secrets:
+                    value = parameter['Value']
+                else:
+                    value = secure_string_label
+            else:
+                value = parameter['Value']
             print("{}{} {}->{} {}".format(
                 colors.BLUE,
                 parameter['Name'],
                 colors.CYAN,
                 colors.ENDCOLOR,
-                secure_string_label if parameter['Type'] == 'SecureString' else parameter['Value']))
+                value
+                ))
 
 
     print("Found {} matches out of {} parameters from SSM".format(
@@ -138,6 +146,8 @@ def parse_args():
                         help='SSM prefix to start searching from')
     parser.add_argument('--no-cache', action='store_true', default=False,
                         help='Will force fresh loading of parameters from SSM')
+    parser.add_argument('--show-secrets', action='store_true', default=False,
+                        help='Will display SecureStrings instead of hiding their values')
     args = parser.parse_args()
     return args
     
@@ -168,11 +178,12 @@ def main():
         
     if load_from_cache:
         ssm_params = read_ssm_cache(cache_filename)
+        print("Loaded SSM values from cache, use --no-cache to prevent.")
     else:
         ssm_params = load_ssm_params(args.prefix, args.profile)
         write_ssm_cache(cache_filename, ssm_params)
         
-    search_ssm_params(ssm_params, args.search_string)
+    search_ssm_params(ssm_params, args.search_string, args.show_secrets)
 
 if __name__ == '__main__':
     main()
