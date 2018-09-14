@@ -18,7 +18,7 @@ try:
     import pypandoc
     long_description = pypandoc.convert('README.md', 'rst')
 except (IOError, ImportError) as e:
-    print("Error converting READMD.md to rst:", str(e))
+    print("Error converting README.md to rst:", str(e))
     long_description = open('README.md').read()
 
 setup(name=about['__title__'],
@@ -30,7 +30,7 @@ setup(name=about['__title__'],
       author_email=about['__author_email__'],
       url=about['__url__'],
       install_requires=requires,
-      packages=find_packages(),
+      packages=find_packages(exclude=['pypandoc']),
       entry_points={
         "console_scripts": [
             'ssm-search = ssm_search.ssm_search:main'
