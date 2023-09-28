@@ -17,7 +17,7 @@ class colors:
     UNDERLINE = '\033[4m'
 
 
-def search_ssm_params(ssm_params, search_strings, show_secrets):
+def search_ssm_params(ssm_params, search_strings, show_secrets, search_in_value, append_version_to_name, generate_update_commands):
     num_matches = 0
     secure_string_label = '{}(SecureString){}'.format(colors.YELLOW, colors.ENDCOLOR)
     for parameter in ssm_params:
@@ -26,6 +26,10 @@ def search_ssm_params(ssm_params, search_strings, show_secrets):
             try:
                 if search_string.lower() in parameter['Name'].lower():
                     found_count += 1
+                else :
+                    if search_in_value:
+                        if search_string.lower() in parameter['Value'].lower():
+                            found_count += 1
             except Exception as e:
                 raise ("Error processing parameter: {}\nParameter: {}".format(str(e), parameter))
         if found_count == len(search_strings):
@@ -37,13 +41,23 @@ def search_ssm_params(ssm_params, search_strings, show_secrets):
                     value = secure_string_label
             else:
                 value = parameter['Value']
-            print("{}{} {}->{} {}".format(
-                colors.BLUE,
-                parameter['Name'],
-                colors.CYAN,
-                colors.ENDCOLOR,
-                value
+            name = parameter['Name']
+            if generate_update_commands :
+                print(" aws ssm put-parameter --name \"{}\" --value \"{}\" --overwrite".format(
+                    name,
+                    value
                 ))
+            else:
+                if append_version_to_name:
+                    version = parameter['Version']
+                    name = '{}:{}'.format(name, version)
+                print("{}{} {}->{} {}".format(
+                    colors.BLUE,
+                    name,
+                    colors.CYAN,
+                    colors.ENDCOLOR,
+                    value
+                    ))
 
 
     print("Found {} matches out of {} parameters from SSM".format(
@@ -148,6 +162,12 @@ def parse_args():
                         help='Will force fresh loading of parameters from SSM')
     parser.add_argument('--show-secrets', action='store_true', default=False,
                         help='Will display SecureStrings instead of hiding their values')
+    parser.add_argument('--search-in-value', action='store_true', default=False,
+                        help='Search for string in parameter value as well')
+    parser.add_argument('--generate-update-commands', action='store_true', default=False,
+                        help='Will display command(s) to update value(s)')
+    parser.add_argument('--append-version-to-name', action='store_true', default=False,
+                        help='Will display version appended to name')
     args = parser.parse_args()
     return args
     
@@ -172,7 +192,7 @@ def main():
         if os.path.exists(cache_filename):
             ssm_cache_seconds_ago = \
                 time.time() - os.path.getmtime(cache_filename)
-            max_cache_age_seconds = os.environ.get('SSM_SEARCH_MAX_CACHE', 300)
+            max_cache_age_seconds = int(os.environ.get('SSM_SEARCH_MAX_CACHE', 300))
             if ssm_cache_seconds_ago <= max_cache_age_seconds:
                 load_from_cache = True
         
@@ -183,7 +203,7 @@ def main():
         ssm_params = load_ssm_params(args.prefix, args.profile)
         write_ssm_cache(cache_filename, ssm_params)
         
-    search_ssm_params(ssm_params, args.search_string, args.show_secrets)
+    search_ssm_params(ssm_params, args.search_string, args.show_secrets, args.search_in_value, args.append_version_to_name, args.generate_update_commands)
 
 if __name__ == '__main__':
     main()
